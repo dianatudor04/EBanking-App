@@ -9,6 +9,7 @@ public class User {
     String firstName;
     String lastName;
     String address;
+    Portfolio portfolio;
     List<User> friends = new ArrayList<>();
 
     public User(String email, String firstName, String lastName, String address) {
@@ -16,6 +17,14 @@ public class User {
         this.firstName = firstName;
         this.lastName = lastName;
         this.address = address;
+        this.portfolio = new Portfolio();
+    }
+
+    public Account findAccount(String type) {
+        for (Account account: portfolio.accounts)
+            if (account.type.equals(type))
+                return account;
+        return null;
     }
 
     @Override
