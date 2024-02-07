@@ -18,8 +18,15 @@ public class AdminSingleton {
         return null;
     }
 
-    public static List<ConcreteAction> getStockValues() {
-        String filePath = "src/main/resources/test1/stockValues.csv";
+    public ConcreteAction getAction(String company) {
+        for (ConcreteAction action: actions)
+            if (action.getCompany().equals(company))
+                return action;
+        return null;
+    }
+
+    public List<ConcreteAction> getStockValues(String path) {
+        String filePath = "src/main/resources/" + path;
         List<ConcreteAction> actions = new ArrayList<>();
         try (BufferedReader r = new BufferedReader(new FileReader(filePath))) {
             String line;
@@ -38,11 +45,10 @@ public class AdminSingleton {
         } catch (IOException error) {
             System.out.println(error.toString());
         }
-        return null;
+        return actions;
     }
 
     private AdminSingleton() {
-        this.actions = AdminSingleton.getStockValues();
     }
 
     public static AdminSingleton getInstance() {

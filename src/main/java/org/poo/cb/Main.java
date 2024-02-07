@@ -13,6 +13,7 @@ public class Main {
         } else {
             String path = "src/main/resources/" + args[2];
             AdminSingleton.getInstance().users = new ArrayList<>();
+            AdminSingleton.getInstance().actions = AdminSingleton.getInstance().getStockValues(args[1]);
             try (BufferedReader r = new BufferedReader(new FileReader(path))) {
                 String line;
                 while ((line = r.readLine()) != null) {

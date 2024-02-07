@@ -3,9 +3,7 @@ package org.poo.cb;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 class CreateUser extends Command {
     public void command(List<String> strings) {
@@ -140,12 +138,37 @@ class BuyStocks extends Command {
         User user = AdminSingleton.getInstance().findUser(strings.get(0));
         String company = strings.get(1);
         int noOfStocks = Integer.parseInt(strings.get(2));
+        AccountStockCurrencies account = (AccountStockCurrencies) user.findAccount("USD");
+        List<Double> companyStockValues = AdminSingleton.getInstance().getAction(company).stockValues;
+        Double stockPrice = companyStockValues.get(companyStockValues.size() - 1);
+        if (account.sum < stockPrice * noOfStocks) {
+            System.out.println("Insufficient amount in account for buying stock");
+        } else {
+            account.sum -= stockPrice * noOfStocks;
+            UserDecorator userAction = new UserDecorator(AdminSingleton.getInstance().getAction(company), noOfStocks);
+            user.portfolio.actions.add(userAction);
+            account.actions.add(userAction);
+        }
     }
 }
 
 class RecommendedStocks extends Command {
     public void command(List<String> strings) {
-
+        List<ConcreteAction> actions = AdminSingleton.getInstance().actions;
+        List<ConcreteAction> recommendedActions = new ArrayList<>();
+        for (ConcreteAction action: actions)
+            if (action.SMAAverage() > 0)
+                recommendedActions.add(action);
+        recommendedActions.sort((o1, o2) -> Double.compare(o2.SMAAverage(), o1.SMAAverage()));
+        System.out.print("{\"stocksToBuy\":[");
+        for (int i = 0; i < recommendedActions.size(); i++) {
+            System.out.print("\"");
+            System.out.print(recommendedActions.get(i).getCompany());
+            System.out.print("\"");
+            if (i + 1 < recommendedActions.size())
+                System.out.print(",");
+        }
+        System.out.println("]}");
     }
 }
 
@@ -153,7 +176,7 @@ class ListUser extends Command {
     public void command(List<String> strings) {
         User user = AdminSingleton.getInstance().findUser(strings.get(0));
         if (user == null) {
-            System.out.println("User with " + user.email + " doesn't exist");
+            System.out.println("User with " + strings.get(0) + " doesn't exist");
         } else {
             System.out.print("{\"email\":\"" + user.email + "\",\"firstname\":\"" + user.firstName +
                     "\",\"lastname\":\"" + user.lastName + "\",\"address\":\"" + user.address + "\",\"friends\":[");
@@ -161,7 +184,7 @@ class ListUser extends Command {
                 System.out.print("\"");
                 System.out.print(user.friends.get(i).email);
                 System.out.print("\"");
-                if (i < user.friends.size() - 1)
+                if (i + 1 < user.friends.size())
                     System.out.print(",");
             }
             System.out.println("]}");
@@ -173,9 +196,20 @@ class ListPortfolio extends Command {
     public void command(List<String> strings) {
         User user = AdminSingleton.getInstance().findUser(strings.get(0));
         if (user == null) {
-            System.out.println("User with " + user.email + " doesn't exist");
+            System.out.println("User with " + strings.get(0) + " doesn't exist");
         } else {
-            System.out.print("{\"stocks\":" + "[]" + ",\"accounts\":[");
+            System.out.print("{\"stocks\":" + "[");
+            for (int i = 0; i < user.portfolio.actions.size(); i++) {
+                System.out.print("{\"stockName\":\"");
+                System.out.print(user.portfolio.actions.get(i).getCompany());
+                System.out.print("\",");
+                System.out.print("\"amount\":");
+                System.out.print(user.portfolio.actions.get(i).getNoOfStocks());
+                System.out.print("}");
+                if (i + 1 < user.portfolio.actions.size())
+                    System.out.print(",");
+            }
+            System.out.print("]" + ",\"accounts\":[");
             for (int i = 0; i < user.portfolio.accounts.size(); i++) {
                 System.out.print("{\"currencyName\":\"");
                 System.out.print(user.portfolio.accounts.get(i).type);
@@ -183,7 +217,7 @@ class ListPortfolio extends Command {
                 System.out.print("\"amount\":\"");
                 System.out.printf("%.2f", user.portfolio.accounts.get(i).sum);
                 System.out.print("\"}");
-                if (i < user.portfolio.accounts.size() - 1)
+                if (i + 1 < user.portfolio.accounts.size())
                     System.out.print(",");
             }
             System.out.println("]}");
