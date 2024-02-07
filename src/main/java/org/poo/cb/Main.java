@@ -16,6 +16,9 @@ public class Main {
             try (BufferedReader r = new BufferedReader(new FileReader(path))) {
                 String line;
                 while ((line = r.readLine()) != null) {
+                    if (line.isEmpty()) {
+                        break;
+                    }
                     Command command;
                     List<String> commandArguments = new ArrayList<>(List.of(line.split(" ")));
                     String commandName = commandArguments.get(0) + " " + commandArguments.get(1);

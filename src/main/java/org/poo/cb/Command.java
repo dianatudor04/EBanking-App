@@ -1,7 +1,6 @@
 package org.poo.cb;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
@@ -52,14 +51,15 @@ class AddAccount extends Command {
     public void command(List<String> strings) {
         User user = AdminSingleton.getInstance().findUser(strings.get(0));
         int found = 0;
-        for (Account account: user.portfolio.accounts)
+        for (AccountAbstract account: user.portfolio.accounts)
             if (account.type.equals(strings.get(1))) {
                 found = 1;
                 System.out.println("Account in currency " + strings.get(0) + " already exists for user");
                 break;
             }
         if (found == 0) {
-            user.portfolio.accounts.add(new Account(strings.get(1)));
+            Factory f =  new Factory();
+            user.portfolio.accounts.add(f.createAccount(strings.get(1)));
         }
     }
 }
@@ -67,7 +67,7 @@ class AddAccount extends Command {
 class AddMoney extends Command {
     public void command(List<String> strings) {
         User user = AdminSingleton.getInstance().findUser(strings.get(0));
-        Account account = user.findAccount(strings.get(1));
+        AccountAbstract account = user.findAccount(strings.get(1));
         account.sum = account.sum + Double.parseDouble(strings.get(2));
     }
 }
@@ -98,8 +98,8 @@ class ExchangeMoney extends Command {
     public void command(List<String> strings) {
         ExchangeMoney.getExchangeValues();
         User user = AdminSingleton.getInstance().findUser(strings.get(0));
-        Account accountSource = user.findAccount(strings.get(1));
-        Account accountDest = user.findAccount(strings.get(2));
+        AccountAbstract accountSource = user.findAccount(strings.get(1));
+        AccountAbstract accountDest = user.findAccount(strings.get(2));
         double sum = Double.parseDouble(strings.get(3));
         double exchangeValue = exchangeValues[this.dictionary.get(accountSource.type)][this.dictionary.get(accountDest.type)];
         if (sum * exchangeValue > accountSource.sum) {
@@ -116,13 +116,30 @@ class ExchangeMoney extends Command {
 
 class TransferMoney extends Command {
     public void command(List<String> strings) {
-
+        User user1 = AdminSingleton.getInstance().findUser(strings.get(0));
+        User user2 = AdminSingleton.getInstance().findUser(strings.get(1));
+        String currency = strings.get(2);
+        double amount = Double.parseDouble(strings.get(3));
+        if (user1.friends.contains(user2)) {
+            AccountAbstract accountUser1 = user1.findAccount(currency);
+            AccountAbstract accountUser2 = user2.findAccount(currency);
+            if (amount <= accountUser1.sum) {
+                accountUser1.sum -= amount;
+                accountUser2.sum += amount;
+            } else {
+                System.out.println("Insufficient amount in account " + currency + " for transfer");
+            }
+        } else {
+            System.out.println("You are not allowed to transfer money to " + user2.email);
+        }
     }
 }
 
 class BuyStocks extends Command {
     public void command(List<String> strings) {
-
+        User user = AdminSingleton.getInstance().findUser(strings.get(0));
+        String company = strings.get(1);
+        int noOfStocks = Integer.parseInt(strings.get(2));
     }
 }
 

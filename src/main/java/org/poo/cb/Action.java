@@ -1,4 +1,5 @@
 package org.poo.cb;
 
-public class Action {
+public interface Action {
+    String getCompany();
 }

@@ -20,8 +20,8 @@ public class User {
         this.portfolio = new Portfolio();
     }
 
-    public Account findAccount(String type) {
-        for (Account account: portfolio.accounts)
+    public AccountAbstract findAccount(String type) {
+        for (AccountAbstract account: portfolio.accounts)
             if (account.type.equals(type))
                 return account;
         return null;
